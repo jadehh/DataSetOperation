@@ -204,3 +204,10 @@ def CutImagesWithXml(xml_path):
     image = cv2.imread(image_path)
     images = CutImageWithBoxes(image,bboxes)
     return images,labels
+
+if __name__ == '__main__':
+    root_dir = r"E:\data\Face-Gesture"
+    years = os.listdir(root_dir)
+    for year in years:
+        if os.path.isdir(os.path.join(root_dir,year)):
+            CreateVOCDataset(os.path.join(root_dir,year),year)
