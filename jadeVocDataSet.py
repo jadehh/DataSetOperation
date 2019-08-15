@@ -206,7 +206,14 @@ def CutImagesWithXml(xml_path):
     return images,labels
 
 if __name__ == '__main__':
-    root_dir = r"E:\data\Face-Gesture"
+
+    # years = []
+    # CreateSavePath("/home/jade/Data/FaceGesture/")
+    # for year in os.listdir("/home/jade/Data/Face-Gesture/"):
+    #     if year != "tfrecords" and os.path.isdir(os.path.join("/home/jade/Data/Face-Gesture/",year)):
+    #         RemoveFilesWithNoLabels(os.path.join("/home/jade/Data/Face-Gesture/",year), os.path.join("/home/jade/Data/FaceGesture/",year))
+    #
+    root_dir = "/home/jade/Data/FaceGesture"
     years = os.listdir(root_dir)
     for year in years:
         if os.path.isdir(os.path.join(root_dir,year)):

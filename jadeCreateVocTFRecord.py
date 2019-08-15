@@ -105,6 +105,7 @@ def dict_voc_to_tf_example(data,
 
 
 def CreateVOCTFRecords(args):
+    CreateSavePath(GetPreviousDir(args.output_path))
     data_dir = args.data_dir
     CreateSavePath(GetPreviousDir(args.output_path))
     writer = tf.python_io.TFRecordWriter(args.output_path)
@@ -171,11 +172,16 @@ def VOCTFRecordShow(tfrecord_path,proto_txt_path):
 
 
 if __name__ == '__main__':
-    years = os.listdir(r"E:\data\Face-Gesture")
-    paraser = argparse.ArgumentParser(description="Create TFRecords")
-    paraser.add_argument("--data_dir",default=r"E:\data\Face-Gesture",help="")
-    paraser.add_argument("--output_path",default=r"E:\data\Face-Gesture\tfrecords",help="")
-    paraser.add_argument("--proto_txt_path",default=r"E:\data\Face-Gesture\face_gesture.prototxt",help="")
-    paraser.add_argument("--years",type=list,default=years,help="")
-    args = paraser.parse_args()
-    CreateVOCTFRecords(args)
+    # years = []
+    # for year in os.listdir("/home/jade/Data/FaceGesture/"):
+    #     if year != "tfrecords" and os.path.isdir(os.path.join("/home/jade/Data/FaceGesture/",year)):
+    #         years.append(year)
+    # paraser = argparse.ArgumentParser(description="Create TFRecords")
+    # paraser.add_argument("--data_dir",default="/home/jade/Data/FaceGesture/",help="")
+    # paraser.add_argument("--output_path",default="/home/jade/Data/FaceGesture/tfrecords/hand_gesture_train.tfrecord",help="")
+    # paraser.add_argument("--proto_txt_path",default="/home/jade/Data/FaceGesture/face_gesture.prototxt",help="")
+    # paraser.add_argument("--years",type=list,default=years,help="")
+    # args = paraser.parse_args()
+    # CreateVOCTFRecords(args)
+
+    VOCTFRecordShow("/home/jade/Data/FaceGesture/tfrecords/hand_gesture_train.tfrecord","/home/jade/Data/Face-Gesture/face_gesture.prototxt")
