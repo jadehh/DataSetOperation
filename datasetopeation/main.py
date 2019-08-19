@@ -4,6 +4,6 @@
 # 邮箱：jadehh@live.com
 # 描述：TODO
 # 最近修改：2019/8/13 16:54 modify by jade
-from jadeVocDataSet import *
+from datasetopeation.jadeVocDataSet import *
 if __name__ == '__main__':
     RandomSplitDataset("",200)
