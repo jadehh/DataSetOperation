@@ -213,7 +213,7 @@ if __name__ == '__main__':
     #     if year != "tfrecords" and os.path.isdir(os.path.join("/home/jade/Data/Face-Gesture/",year)):
     #         RemoveFilesWithNoLabels(os.path.join("/home/jade/Data/Face-Gesture/",year), os.path.join("/home/jade/Data/FaceGesture/",year))
     #
-    root_dir = "/home/jade/Data/FaceGesture"
+    root_dir = "/home/jade/Data/UAFaceGesture/checked"
     years = os.listdir(root_dir)
     for year in years:
         if os.path.isdir(os.path.join(root_dir,year)):
