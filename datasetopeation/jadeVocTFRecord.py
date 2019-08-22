@@ -154,6 +154,14 @@ def dict_voc_to_tf_example(data,
 """
 
 def CreateVOCTFRecords(voc_path,datasetname,prototxt,isnormal=True):
+    """
+    制作VOC TFrecords
+    :param voc_path:
+    :param datasetname:
+    :param prototxt:
+    :param isnormal:
+    :return:
+    """
 
     train_output_path = CreateSavePath(os.path.join(GetPreviousDir(voc_path), "TFRecords"))
     train_output_path = train_output_path + "/" + datasetname + "_train.tfrecord"
@@ -198,8 +206,18 @@ def CreateVOCTFRecords(voc_path,datasetname,prototxt,isnormal=True):
 
 
 def parse_exmp(serial_exmp, output_height, output_width, is_train):
+    """
+    解析tfrecord 文件
+    :param serial_exmp:
+    :param output_height:
+    :param output_width:
+    :param is_train:
+    :return:
+    """
     feats = tf.io.parse_single_example(serial_exmp,
                                        features={'image/encoded': tf.io.FixedLenFeature([], tf.string),
+                                                 'image/height': tf.io.FixedLenFeature([], tf.int64),
+                                                 'image/width': tf.io.FixedLenFeature([], tf.int64),
                                                  'image/object/class/label': tf.io.VarLenFeature(tf.int64),
                                                  'image/object/bbox/xmin':  tf.io.VarLenFeature(tf.float32),
                                                  'image/object/bbox/xmax':  tf.io.VarLenFeature(tf.float32),
@@ -214,23 +232,24 @@ def parse_exmp(serial_exmp, output_height, output_width, is_train):
     label = feats['image/object/class/label']
     label = tf.cast(label,tf.float32)
     img = tf.cast(image, tf.float32)
+    width = feats['image/width']
+    height = feats['image/height']
     xmin = feats['image/object/bbox/xmin']
     xmax = feats['image/object/bbox/xmax']
     ymin = feats['image/object/bbox/ymin']
     ymax = feats['image/object/bbox/ymax']
-
     label = tf.sparse.to_dense(label)
     xmin = tf.sparse.to_dense(xmin)
     xmax = tf.sparse.to_dense(xmax)
     ymin = tf.sparse.to_dense(ymin)
     ymax = tf.sparse.to_dense(ymax)
-
     predict = tf.stack([label,xmin,xmax,ymin,ymax],axis=0)
+    img = tf.image.resize(img,(height,width))
+    img.set_shape([None,None,3])
     # if is_train:
     #     img = process_for_train(img, output_height, output_width)
     # else:
     #     img = process_for_eval(img, output_height, output_width)
-
     return img,predict
 
 
@@ -239,13 +258,13 @@ def get_dataset(fname, output_height, output_width, is_train):
     return dataset.map(lambda serial_exmp: parse_exmp(serial_exmp, output_height, output_width, is_train))
 
 
-def LoadVOCTFRecord(tfrecord_path, batch_size=32, shuffle=True, repeat=True, output_height=300, output_width=300,
+def LoadVOCTFRecord(tfrecord_path, batch_size=32, shuffle=False, repeat=True, output_height=300, output_width=300,
                     is_train=True):
     """
-    读取分类的TFrecords
+    读取目标检测的TFrecords
     :param tfrecord_path:
     :param batch_size:
-    :param shuffle:
+    :param shuffle: 这里最好就在做TFRecord之前就已经shuffle过
     :param repeat:
     :return:
     """
@@ -261,13 +280,13 @@ def LoadVOCTFRecord(tfrecord_path, batch_size=32, shuffle=True, repeat=True, out
 def VOCTFRecordShow(tfrecord_path, proto_txt_path):
     _,class_names = ReadProTxt(proto_txt_path)
     train_ds = LoadVOCTFRecord(tfrecord_path,batch_size=1)
-
     for (image,predicts) in train_ds:
         boxes = []
         scores = []
         labels = []
         label_text = []
         image = image.numpy().astype('uint8')[0]
+        image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
         predicts = predicts.numpy()[0]
         print(predicts)
         for i in range(predicts.shape[1]):
@@ -285,7 +304,7 @@ def VOCTFRecordShow(tfrecord_path, proto_txt_path):
 
 
 if __name__ == '__main__':
-    VOCTFRecordShow("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord","/home/jade/Data/Hand_Gesture/hand_gesture.prototxt")
+    #VOCTFRecordShow("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord","/home/jade/Data/Hand_Gesture/hand_gesture.prototxt")
     train_ds = LoadVOCTFRecord("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord",batch_size=1)
     for (image,label) in train_ds:
         print(label.numpy())
