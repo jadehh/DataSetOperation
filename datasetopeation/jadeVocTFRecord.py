@@ -45,7 +45,7 @@ def dict_voc_to_tf_example(data,
     :return:
     """
     data['folder'] = voc_dir
-    img_path = os.path.join(data['folder'], image_subdirectory, GetLastDir(xml_name)[:-4] + '.jpg')
+    img_path = os.path.join(GetPreviousDir(GetPreviousDir(xml_name)),DIRECTORY_IMAGES,GetLastDir(xml_name)[:-4] + '.jpg')
     full_path = img_path
     with GFile(full_path, 'rb') as fid:
         encoded_jpg = fid.read()
@@ -74,7 +74,8 @@ def dict_voc_to_tf_example(data,
             # continue
 
             difficult_obj.append(int(0))
-            if int(class_names.index(obj['name'])) > 0:
+            if obj['name'] == 'face':
+            #if int(class_names.index(obj['name'])) > 0:
                 if is_normal:
                     xmin.append(float(obj['bndbox']['xmin']) / width)
                     ymin.append(float(obj['bndbox']['ymin']) / height)
@@ -205,6 +206,76 @@ def CreateVOCTFRecords(voc_path,datasetname,prototxt,isnormal=True):
     test_writer.close()
 
 
+def CreateVOCYearTFRecords(root_dir,dataset_name,prototxt_path,isnormal=True):
+    """
+    主目录下有多个VOC 数据集
+    :param args:
+    :return:
+    """
+    years = []
+    all_train_path = []
+    all_test_path = []
+    years = []
+    for year in os.listdir(root_dir):
+        if year.lower() != "tfrecords" and os.path.isdir(os.path.join(root_dir,year)):
+            years.append(year)
+            # 获取year下面的VOC数据集
+            voc_path = os.path.join(root_dir,year)
+            train_path = GetVOCTrainXmlPath(voc_path)
+            test_path = GetVOCTestXmlPath(voc_path)
+            all_train_path.extend(train_path)
+            all_test_path.extend(test_path)
+
+    random.shuffle(all_train_path)
+    random.shuffle(all_test_path)
+    _,class_names = ReadProTxt(prototxt_path)
+    train_output_path = CreateSavePath(os.path.join(GetPreviousDir(root_dir), "TFRecords"))
+    train_output_path = train_output_path + "/" + dataset_name + "_train.tfrecord"
+    train_writer = tf.io.TFRecordWriter(train_output_path)
+
+    test_output_path = CreateSavePath(os.path.join(GetPreviousDir(root_dir), "TFRecords"))
+    test_output_path = test_output_path + "/" + dataset_name + "_test.tfrecord"
+    test_writer = tf.io.TFRecordWriter(test_output_path)
+
+
+    train_processBar = ProcessBar()
+    train_processBar.count = len(all_train_path)
+    for idx, example in enumerate(all_train_path):
+        with GFile(example, 'r') as fid:
+            xml_str = fid.read()
+        xml = etree.fromstring(xml_str)
+        data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
+        train_processBar.start_time = time.time()
+        tf_example = dict_voc_to_tf_example(data, root_dir, class_names, example, dataset_name,
+                                            True, is_normal=isnormal)
+        train_writer.write(tf_example.SerializeToString())
+        NoLinePrint("Writing train TFrecords ...",train_processBar)
+
+    print(" ")
+    test_processBar = ProcessBar()
+    test_processBar.count  = len(all_test_path)
+    for idx, example in enumerate(all_test_path):
+        with GFile(example, 'r') as fid:
+            xml_str = fid.read()
+        xml = etree.fromstring(xml_str)
+        data = dataset_util.recursive_parse_xml_to_dict(xml)['annotation']
+        test_processBar.start_time = time.time()
+        tf_example = dict_voc_to_tf_example(data, root_dir, class_names, example, dataset_name,
+                                            True, is_normal=isnormal)
+        test_writer.write(tf_example.SerializeToString())
+        NoLinePrint("Writing test TFrecords ...", test_processBar)
+    #
+    train_writer.close()
+    test_writer.close()
+
+
+
+
+
+
+
+
+
 def parse_exmp(serial_exmp, output_height, output_width, is_train):
     """
     解析tfrecord 文件
@@ -304,7 +375,8 @@ def VOCTFRecordShow(tfrecord_path, proto_txt_path):
 
 
 if __name__ == '__main__':
-    #VOCTFRecordShow("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord","/home/jade/Data/Hand_Gesture/hand_gesture.prototxt")
-    train_ds = LoadVOCTFRecord("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord",batch_size=1)
-    for (image,label) in train_ds:
-        print(label.numpy())
+    #CreateVOCYearTFRecords("/home/jade/Data/GestureFace/","Face","/home/jade/Data/GestureFace/face.prototxt")
+    VOCTFRecordShow("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_train.tfrecord","/home/jade/Data/Hand_Gesture/hand_gesture.prototxt")
+    #train_ds = LoadVOCTFRecord("/home/jade/Data/Hand_Gesture/TFRecords/UA_Handgesture_test.tfrecord",batch_size=1)
+    #for (image,label) in train_ds:
+        #print(label.numpy())
