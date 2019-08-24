@@ -314,7 +314,7 @@ def parse_exmp(serial_exmp, output_height, output_width, is_train):
     xmax = tf.sparse.to_dense(xmax)
     ymin = tf.sparse.to_dense(ymin)
     ymax = tf.sparse.to_dense(ymax)
-    predict = tf.stack([label,xmin,xmax,ymin,ymax],axis=0)
+    predict = tf.stack([label,xmin,ymin,xmax,ymax],axis=1)
     img = tf.image.resize(img,(height,width))
     img.set_shape([None,None,3])
     # if is_train:
