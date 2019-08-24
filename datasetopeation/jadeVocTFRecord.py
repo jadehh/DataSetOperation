@@ -310,17 +310,17 @@ def parse_exmp(serial_exmp, output_height, output_width, is_train):
     ymin = feats['image/object/bbox/ymin']
     ymax = feats['image/object/bbox/ymax']
     label = tf.sparse.to_dense(label)
-    xmin = tf.sparse.to_dense(xmin)
-    xmax = tf.sparse.to_dense(xmax)
-    ymin = tf.sparse.to_dense(ymin)
-    ymax = tf.sparse.to_dense(ymax)
+    xmin = tf.sparse.to_dense(xmin) * 300
+    xmax = tf.sparse.to_dense(xmax) * 300
+    ymin = tf.sparse.to_dense(ymin) * 300
+    ymax = tf.sparse.to_dense(ymax) * 300
     predict = tf.stack([label,xmin,ymin,xmax,ymax],axis=1)
     img = tf.image.resize(img,(height,width))
     img.set_shape([None,None,3])
-    # if is_train:
-    #     img = process_for_train(img, output_height, output_width)
-    # else:
-    #     img = process_for_eval(img, output_height, output_width)
+    if is_train:
+        img = process_for_train(img, output_height, output_width)
+    else:
+        img = process_for_eval(img, output_height, output_width)
     return img,predict
 
 
