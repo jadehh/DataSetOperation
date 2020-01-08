@@ -154,7 +154,7 @@ def dict_voc_to_tf_example(data,
     CreateVOCTFRecords(args,True)
 """
 
-def CreateVOCTFRecords(voc_path,datasetname,prototxt,isnormal=True):
+def CreateVOCTFRecords(args,isnormal=True):
     """
     制作VOC TFrecords
     :param voc_path:
@@ -163,7 +163,9 @@ def CreateVOCTFRecords(voc_path,datasetname,prototxt,isnormal=True):
     :param isnormal:
     :return:
     """
-
+    voc_path = args.data_dir
+    datasetname = args.dataset_name
+    args = args.proto_txt_path
     train_output_path = CreateSavePath(os.path.join(GetPreviousDir(voc_path), "TFRecords"))
     train_output_path = train_output_path + "/" + datasetname + "_train.tfrecord"
     train_writer = tf.io.TFRecordWriter(train_output_path)
